@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深掘り12問ガイド - 音声練習版</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+    font-family: "Hiragino Sans", "Meiryo", sans-serif;
+    line-height: 1.6;
+    color: #333;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { color: #1c7ed6; margin-bottom: 10px; text-align: center; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+  
+  .question-list {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .q-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .q-btn:hover { background: #f0f0f0; border-color: #1c7ed6; }
+  .q-btn.selected { background: #e7f1ff; border-color: #1c7ed6; font-weight: bold; }
+  
+  .practice-area {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .question-display {
+    background: #f9f9f9;
+    padding: 15px;
+    border-left: 5px solid #1c7ed6;
+    margin-bottom: 20px;
+    border-radius: 3px;
+  }
+  
+  .control-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  .btn-voice {
+    background: #2b8a3e;
+    color: white;
+  }
+  .btn-voice:hover { background: #1e6b2e; }
+  .btn-voice.recording {
+    background: #d92d20;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  .btn-clear {
+    background: #ccc;
+    color: #333;
+  }
+  .btn-clear:hover { background: #999; }
+  .btn-eval {
+    background: #1c7ed6;
+    color: white;
+  }
+  .btn-eval:hover { background: #155fa3; }
+  
+  .transcript-box {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 3px;
+    margin-bottom: 15px;
+    min-height: 60px;
+  }
+  .transcript-box.empty {
+    color: #999;
+    font-style: italic;
+  }
+  
+  .evaluation {
+    background: #f0f8ff;
+    border-left: 5px solid #1c7ed6;
+    padding: 15px;
+    border-radius: 3px;
+    margin-top: 20px;
+  }
+  .evaluation h3 { margin-top: 0; color: #1c7ed6; }
+  
+  .intent-section {
+    background: #fff3bf;
+    padding: 12px;
+    border-radius: 3px;
+    margin: 15px 0;
+  }
+  .intent-label { font-size: 12px; color: #999; text-transform: uppercase; }
+  .intent-text { color: #d9480f; font-weight: bold; }
+  
+  .keywords { margin-top: 10px; }
+  .keyword { 
+    display: inline-block;
+    background: #e7f1ff;
+    color: #1c7ed6;
+    padding: 4px 10px;
+    margin: 4px 4px 4px 0;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  
+  .copy-prompt {
+    background: #f0f0f0;
+    padding: 10px;
+    border-radius: 3px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  .copy-prompt button {
+    background: #1c7ed6;
+    color: white;
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .copy-prompt button:hover { background: #155fa3; }
+  
+  .msg { margin-top: 8px; padding: 8px; border-radius: 3px; }
+  .msg.info { background: #e7f1ff; color: #1c7ed6; }
+  .msg.success { background: #c3fac3; color: #2b8a3e; }
+  .msg.error { background: #fcc; color: #d92d20; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>深掘り12問ガイド</h1>
+  <p class="subtitle">音声入力→文字化→AI評価版</p>
+  
+  <div class="question-list">
+    <h3>質問を選択:</h3>
+    <button class="q-btn" onclick="selectQuestion(0)">Q① 志望動機・町理解 - 大津町を選んだ理由</button>
+    <button class="q-btn" onclick="selectQuestion(1)">Q② 大津町理解・課題認識</button>
+    <button class="q-btn" onclick="selectQuestion(2)">Q③ 職務経歴・適性</button>
+    <button class="q-btn" onclick="selectQuestion(3)">Q④ 行政課題対応・報告体制</button>
+    <button class="q-btn" onclick="selectQuestion(4)">Q⑤ 対人スキル・傾聴力</button>
+    <button class="q-btn" onclick="selectQuestion(5)">Q⑥ プレッシャー対応・メンタルヘルス</button>
+    <button class="q-btn" onclick="selectQuestion(6)">Q⑦ キャリアパス・長期展望</button>
+    <button class="q-btn" onclick="selectQuestion(7)">Q⑧ 成長意欲・学習姿勢</button>
+    <button class="q-btn" onclick="selectQuestion(8)">Q⑨ 失敗経験・改善能力</button>
+    <button class="q-btn" onclick="selectQuestion(9)">Q⑩ チームワーク・対立解決</button>
+    <button class="q-btn" onclick="selectQuestion(10)">Q⑪ 志望部門の理解</button>
+    <button class="q-btn" onclick="selectQuestion(11)">Q⑫ 失敗からの学習プロセス</button>
+  </div>
+  
+  <div class="practice-area">
+    <div id="questionDisplay" class="question-display" style="display:none;">
+      <div><strong id="questionText"></strong></div>
+    </div>
+    
+    <div class="control-buttons">
+      <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()">🎤 音声入力開始</button>
+      <button class="btn-clear" onclick="clearTranscript()">クリア</button>
+      <button class="btn-eval" onclick="prepareEvaluation()">📝 AI評価を準備</button>
+    </div>
+    
+    <div>
+      <label><strong>認識されたテキスト:</strong></label>
+      <div id="transcriptBox" class="transcript-box empty">クリックして音声入力を開始...</div>
+    </div>
+    
+    <div id="evalSection" style="display:none;">
+      <div class="copy-prompt">
+        <strong>【AI評価依頼】</strong>
+        <p style="margin: 8px 0; color: #666; font-size: 12px;">
+          下のテキストをコピーして、Claude（またはChatGPT）に貼り付けて評価してもらいます。
+        </p>
+        <textarea id="evalPrompt" style="width:100%; height: 200px; padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px;" readonly></textarea>
+        <button onclick="copyToClipboard()">📋 コピー</button>
+      </div>
+    </div>
+    
+    <div id="intentSection" style="display:none;">
+      <div class="intent-section">
+        <div class="intent-label">面接官の意図</div>
+        <div class="intent-text" id="intentText"></div>
+        <div class="keywords" id="keywordArea"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "大津町を選んだ理由は何ですか。他の市町村ではなく、なぜ大津町なのですか。",
+    intent: "長期的な定着可能性と、その町でなければならない理由（本気度）を確認したい",
+    keywords: ["具体的な出会い", "調査した施策", "自分の適性", "貢献意思"],
+    model: "大津町を選んだ理由は三点です。一点目は、初めて訪れた大津町の課題を実感したこと。二点目は、第7次振興総合計画で、公共交通の充実が施策4-3として位置づけられ、継続的な取組がされていること。三点目は、職務経歴から、交通課題の解決で、町民生活に直結する貢献ができると考えるからです。"
+  },
+  {
+    q: "大津町の現状と課題について、何を知っていますか。",
+    intent: "表面的な対策ではなく、町民感覚での理解度と準備度を確認したい",
+    keywords: ["人口動向", "主要施策", "交通課題", "現実的な認識"],
+    model: "大津町は、熊本市に隣接し、過去3年の人口動向を示しています。第7次振興総合計画で、主要施策は教育、交通、産業ですが、特に交通面では、高齢化に伴い、路線バスや乗合タクシーの利用需要が変わっています。課題は利用者ニーズと運行事業者のコストのバランスです。"
+  },
+  {
+    q: "あなたの前職経験は、大津町の行政の中でどう活かせますか。",
+    intent: "適応力と現実的な自己認識があるか、行政職員として開花するポテンシャルを確認したい",
+    keywords: ["前職の経験", "得たスキル", "行政との違い", "適応姿勢"],
+    model: "前職では具体的な職務を通じて、得た経験・スキルを磨きました。特に対人対応、問題解決、チーム運営の経験が、行政職員として活かせると考えます。ただし、行政は政策立案の継続性、全体の奉仕者、守秘義務が異なるため、役所のやり方を素直に学び、組織の一員として機動する姿勢を大切にします。"
+  },
+  {
+    q: "職務中に想定外の課題が発生したら、どう対応しますか。",
+    intent: "問題解決スキル、報告体制の理解、冷静な判断ができるか確認したい",
+    keywords: ["事実把握", "上司報告", "関連部署連携", "優先判断"],
+    model: "まず、事実を正確に把握し、具体的な状況を整理します。その上で、上司に報告・相談し、指示を仰ぎます。次に、関連部署との連携を図り、優先順位を決めて対応します。対応中も、定期的に上司に報告し、方針の修正があれば柔軟に対応することを心がけます。"
+  },
+  {
+    q: "町民から『できない要望』を受けたとき、どう対応しますか。",
+    intent: "窓口対応の力量、感情コントロール、説明責任、公平性を確認したい",
+    keywords: ["傾聴", "ニーズ把握", "制度説明", "代替案提示"],
+    model: "まず、町民のお話を最後まで傾聴し、その方が本当に困っていることは何かを理解しようとします。次に、現在の制度や予算の制約を説明しつつ、代わりにできることがあるか相談します。例えば、別の支援制度がある、関連部署で相談できるなど、建設的な代替案を示すことで、「できないではなく、今できることを一緒に考える」姿勢を示します。"
+  },
+  {
+    q: "仕事のプレッシャーが高いとき、あなたはどう対処しますか。",
+    intent: "メンタルヘルス管理、チーム支援の受け方、持続可能性を確認したい",
+    keywords: ["ストレス源の認識", "相談体制", "気分転換", "メンタルケア"],
+    model: "まず、自分のストレス源を認識し、それは改善できるのか、我慢すべきなのか判断します。改善できるなら上司に相談し、業務の優先順位を整理してもらいます。また、同僚のサポートを受けたり、スポーツ・趣味で気分転換したりしながら、メンタルヘルスを保つ工夫をします。"
+  },
+  {
+    q: "5年後、10年後、あなたはどんな職員を目指しますか。",
+    intent: "長期定着意思、成長への前向きさ、現実的なキャリア観を確認したい",
+    keywords: ["1-3年の目標", "5年ビジョン", "10年展望", "実現方法"],
+    model: "5年後は、配属部門の基本的な業務に習熟し、上司からの指示がなくても適切に判断できる人を目指します。10年後は、後輩への教育ができ、課題解決で主導的な役割を担える職員、そして公務員として町民に信頼される存在を目指します。"
+  },
+  {
+    q: "行政職員として、最も学びたいことは何ですか。",
+    intent: "継続的な学習姿勢、職業人としの成熟度、制度への関心を確認したい",
+    keywords: ["具体的な学習対象", "習得方法", "職場への還元", "成長への意志"],
+    model: "行政職員として最も学びたいことは、地域課題の構造的な理解と、その解決プロセスです。具体的には、法律や予算制度の基本から、政策形成の実践まで、段階的に習得したいと考えています。また、異なる部門での経験を通じて、全体的な視点を身につけ、町全体の最適化に貢献できる人材を目指します。"
+  },
+  {
+    q: "これまでの仕事で、失敗した経験と、そこから学んだことを教えてください。",
+    intent: "誠実さ、失敗の受け止め方、改善能力、成長可能性を確認したい",
+    keywords: ["失敗の状況", "本人責任の認識", "報告体制", "改善実績"],
+    model: "前職で具体的な失敗の状況がありました。その時、失敗の原因は自分の●●が不足していたからであり、組織への報告が遅れたことが更に状況を悪化させました。その失敗から学んだことは、早期の報告・相談の重要性と、基本的な●●スキルの習熟です。現在は、具体的な改善行動を実践し、同じ失敗は繰り返していません。"
+  },
+  {
+    q: "職場で意見が対立したとき、どう調整しますか。",
+    intent: "組織への適応と、個人の誠実さのバランス、成熟した判断力を確認したい",
+    keywords: ["相手理解", "上司相談", "組織判断尊重", "全力実行"],
+    model: "意見の対立は健全な組織で起こることと考えます。大事なのは、相手の意見を理解することです。まず、相手の考えの背景を聞き、自分の見方が不足していないか考えます。その上で、上司に相談し、組織の判断に従います。"
+  },
+  {
+    q: "配属予定の部署について、何を知っていますか。何がしたいですか。",
+    intent: "配属部門への関心、配属後の適応速度、教育コストを確認したい",
+    keywords: ["部門の主要業務", "現在の課題", "改善領域", "初動計画"],
+    model: "配属予定部署の現在の業務は、●●の管理と、町民からの相談対応と認識しています。課題として、●●の利用者ニーズの変化に対応する必要があり、改善の余地があると考えています。入庁後は、初期段階では基本業務の習熟に注力し、その上で、●●の効率化に貢献したいと考えています。"
+  },
+  {
+    q: "失敗から学んだことを、実際にどのように改善し、実行に移しましたか。",
+    intent: "実行力、改善への継続性、自己評価能力を確認したい",
+    keywords: ["失敗の認識", "改善策の立案", "実行行動", "実績確認"],
+    model: "前職で具体的な失敗があり、その原因は●●の不足でした。学習プロセスとしては、①失敗の原因を分析、②改善策を立案、③小さなことから実行、④実行結果を検証、⑤改善策を洗練という流れで取り組みました。"
+  }
+];
+
+let selectedQ = null;
+let transcript = '';
+let recognition = null;
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('お使いのブラウザは音声認識に対応していません。Chrome、Edge、Safariをお試しください。');
+    return false;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  
+  recognition.onstart = () => {
+    document.getElementById('voiceBtn').classList.add('recording');
+    document.getElementById('voiceBtn').textContent = '🔴 記録中...';
+  };
+  
+  recognition.onresult = (event) => {
+    transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    document.getElementById('transcriptBox').textContent = transcript;
+    document.getElementById('transcriptBox').classList.remove('empty');
+  };
+  
+  recognition.onend = () => {
+    document.getElementById('voiceBtn').classList.remove('recording');
+    document.getElementById('voiceBtn').textContent = '🎤 音声入力開始';
+  };
+  
+  return true;
+}
+
+function selectQuestion(idx) {
+  selectedQ = idx;
+  document.querySelectorAll('.q-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
+  const q = questions[idx];
+  document.getElementById('questionDisplay').style.display = 'block';
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('intentText').textContent = q.intent;
+  document.getElementById('keywordArea').innerHTML = q.keywords.map(k => `<span class="keyword">${k}</span>`).join('');
+  document.getElementById('intentSection').style.display = 'block';
+  document.getElementById('evalSection').style.display = 'none';
+}
+
+function toggleVoiceInput() {
+  if (!recognition) {
+    if (!initVoice()) return;
+  }
+  if (recognition.onstart !== null) {
+    recognition.start();
+  } else {
+    recognition.stop();
+  }
+}
+
+function clearTranscript() {
+  transcript = '';
+  document.getElementById('transcriptBox').textContent = '音声を記録してください';
+  document.getElementById('transcriptBox').classList.add('empty');
+  document.getElementById('evalSection').style.display = 'none';
+  if (recognition) recognition.stop();
+}
+
+function prepareEvaluation() {
+  if (!selectedQ || !transcript.trim()) {
+    alert('質問を選択して、音声入力を記録してください。');
+    return;
+  }
+  
+  const q = questions[selectedQ];
+  const prompt = `
+【面接官として、この生徒の答えを評価してください】
+
+【質問】
+${q.q}
+
+【生徒の回答】
+${transcript}
+
+【評価項目】
+1. 点数（0～100点）
+2. 良かった点（2-3点）
+3. 改善すべき点（2-3点）
+4. 模範回答の例
+5. 次回への改善アドバイス
+
+面接官の意図：${q.intent}
+キーワード：${q.keywords.join('、')}
+`;
+  
+  document.getElementById('evalPrompt').value = prompt;
+  document.getElementById('evalSection').style.display = 'block';
+  window.scrollTo(0, document.getElementById('evalSection').offsetTop);
+}
+
+function copyToClipboard() {
+  const text = document.getElementById('evalPrompt').value;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('評価依頼文をコピーしました。Claude（またはChatGPT）に貼り付けて評価してもらいます。');
+  });
+}
+
+// 初期化
+window.addEventListener('load', () => {
+  initVoice();
+});
+</script>
+</body>
+</html>
