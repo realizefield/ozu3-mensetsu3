@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深掘り12問ガイド - 自動AI評価版</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+    font-family: "Hiragino Sans", "Meiryo", sans-serif;
+    line-height: 1.6;
+    color: #333;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { color: #1c7ed6; margin-bottom: 10px; text-align: center; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+  
+  .question-list {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .q-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .q-btn:hover { background: #f0f0f0; border-color: #1c7ed6; }
+  .q-btn.selected { background: #e7f1ff; border-color: #1c7ed6; font-weight: bold; }
+  
+  .practice-area {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .question-display {
+    background: #f9f9f9;
+    padding: 15px;
+    border-left: 5px solid #1c7ed6;
+    margin-bottom: 20px;
+    border-radius: 3px;
+  }
+  
+  .control-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  .btn-voice {
+    background: #2b8a3e;
+    color: white;
+  }
+  .btn-voice:hover { background: #1e6b2e; }
+  .btn-voice.recording {
+    background: #d92d20;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  .btn-clear {
+    background: #ccc;
+    color: #333;
+  }
+  .btn-clear:hover { background: #999; }
+  .btn-eval {
+    background: #1c7ed6;
+    color: white;
+  }
+  .btn-eval:hover { background: #155fa3; }
+  .btn-eval.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .transcript-box {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 3px;
+    margin-bottom: 15px;
+    min-height: 60px;
+  }
+  .transcript-box.empty {
+    color: #999;
+    font-style: italic;
+  }
+  
+  .evaluation {
+    background: #f0f8ff;
+    border-left: 5px solid #1c7ed6;
+    padding: 15px;
+    border-radius: 3px;
+    margin-top: 20px;
+  }
+  .evaluation h3 { margin-top: 0; color: #1c7ed6; }
+  
+  .intent-section {
+    background: #fff3bf;
+    padding: 12px;
+    border-radius: 3px;
+    margin: 15px 0;
+  }
+  .intent-label { font-size: 12px; color: #999; text-transform: uppercase; }
+  .intent-text { color: #d9480f; font-weight: bold; }
+  
+  .keywords { margin-top: 10px; }
+  .keyword { 
+    display: inline-block;
+    background: #e7f1ff;
+    color: #1c7ed6;
+    padding: 4px 10px;
+    margin: 4px 4px 4px 0;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  
+  .evaluation-result {
+    background: #f0f8ff;
+    border: 1px solid #1c7ed6;
+    padding: 15px;
+    border-radius: 3px;
+    margin-top: 15px;
+  }
+  .score-display {
+    font-size: 32px;
+    font-weight: bold;
+    color: #1c7ed6;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .eval-item {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  .eval-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .eval-label {
+    font-weight: bold;
+    color: #1c7ed6;
+    margin-bottom: 4px;
+  }
+  .eval-content {
+    color: #333;
+    font-size: 14px;
+  }
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #1c7ed6;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .msg { margin-top: 8px; padding: 8px; border-radius: 3px; }
+  .msg.info { background: #e7f1ff; color: #1c7ed6; }
+  .msg.success { background: #c3fac3; color: #2b8a3e; }
+  .msg.error { background: #fcc; color: #d92d20; }
+  .msg.warning { background: #fff3bf; color: #d9480f; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>深掘り12問ガイド</h1>
+  <p class="subtitle">音声入力→文字化→自動AI評価版 v2</p>
+  
+  <div class="question-list">
+    <h3>質問を選択:</h3>
+    <button class="q-btn" onclick="selectQuestion(0)">Q① 志望動機・町理解 - 大津町を選んだ理由</button>
+    <button class="q-btn" onclick="selectQuestion(1)">Q② 大津町理解・課題認識</button>
+    <button class="q-btn" onclick="selectQuestion(2)">Q③ 職務経歴・適性</button>
+    <button class="q-btn" onclick="selectQuestion(3)">Q④ 行政課題対応・報告体制</button>
+    <button class="q-btn" onclick="selectQuestion(4)">Q⑤ 対人スキル・傾聴力</button>
+    <button class="q-btn" onclick="selectQuestion(5)">Q⑥ プレッシャー対応・メンタルヘルス</button>
+    <button class="q-btn" onclick="selectQuestion(6)">Q⑦ キャリアパス・長期展望</button>
+    <button class="q-btn" onclick="selectQuestion(7)">Q⑧ 成長意欲・学習姿勢</button>
+    <button class="q-btn" onclick="selectQuestion(8)">Q⑨ 失敗経験・改善能力</button>
+    <button class="q-btn" onclick="selectQuestion(9)">Q⑩ チームワーク・対立解決</button>
+    <button class="q-btn" onclick="selectQuestion(10)">Q⑪ 志望部門の理解</button>
+    <button class="q-btn" onclick="selectQuestion(11)">Q⑫ 失敗からの学習プロセス</button>
+  </div>
+  
+  <div class="practice-area">
+    <div id="questionDisplay" class="question-display" style="display:none;">
+      <div><strong id="questionText"></strong></div>
+    </div>
+    
+    <div class="control-buttons">
+      <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()">🎤 音声入力開始</button>
+      <button class="btn-clear" onclick="clearTranscript()">クリア</button>
+      <button class="btn-eval" id="evalBtn" onclick="getAutoEvaluation()">⚡ 自動AI評価</button>
+    </div>
+    
+    <div>
+      <label><strong>認識されたテキスト:</strong></label>
+      <div id="transcriptBox" class="transcript-box empty">クリックして音声入力を開始...</div>
+    </div>
+    
+    <div id="intentSection" style="display:none;">
+      <div class="intent-section">
+        <div class="intent-label">面接官の意図</div>
+        <div class="intent-text" id="intentText"></div>
+        <div class="keywords" id="keywordArea"></div>
+      </div>
+    </div>
+    
+    <div id="evalResultSection" style="display:none;">
+      <div class="evaluation-result">
+        <div class="score-display" id="scoreDisplay"></div>
+        <div id="evalDetails"></div>
+      </div>
+    </div>
+    
+    <div id="loadingSection" style="display:none;">
+      <div class="msg info" style="text-align: center;">
+        <span class="loading-spinner"></span> AI評価を生成中（タイムアウト：30秒）...
+      </div>
+    </div>
+
+    <div id="statusMessage" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { q: "大津町を選んだ理由は何ですか。他の市町村ではなく、なぜ大津町なのですか。", intent: "長期的な定着可能性と、その町でなければならない理由（本気度）を確認したい", keywords: ["具体的な出会い", "調査した施策", "自分の適性", "貢献意思"] },
+  { q: "大津町の現状と課題について、何を知っていますか。", intent: "表面的な対策ではなく、町民感覚での理解度と準備度を確認したい", keywords: ["人口動向", "主要施策", "交通課題", "現実的な認識"] },
+  { q: "あなたの前職経験は、大津町の行政の中でどう活かせますか。", intent: "適応力と現実的な自己認識があるか、行政職員として開花するポテンシャルを確認したい", keywords: ["前職の経験", "得たスキル", "行政との違い", "適応姿勢"] },
+  { q: "職務中に想定外の課題が発生したら、どう対応しますか。", intent: "問題解決スキル、報告体制の理解、冷静な判断ができるか確認したい", keywords: ["事実把握", "上司報告", "関連部署連携", "優先判断"] },
+  { q: "町民から『できない要望』を受けたとき、どう対応しますか。", intent: "窓口対応の力量、感情コントロール、説明責任、公平性を確認したい", keywords: ["傾聴", "ニーズ把握", "制度説明", "代替案提示"] },
+  { q: "仕事のプレッシャーが高いとき、あなたはどう対処しますか。", intent: "メンタルヘルス管理、チーム支援の受け方、持続可能性を確認したい", keywords: ["ストレス源の認識", "相談体制", "気分転換", "メンタルケア"] },
+  { q: "5年後、10年後、あなたはどんな職員を目指しますか。", intent: "長期定着意思、成長への前向きさ、現実的なキャリア観を確認したい", keywords: ["1-3年の目標", "5年ビジョン", "10年展望", "実現方法"] },
+  { q: "行政職員として、最も学びたいことは何ですか。", intent: "継続的な学習姿勢、職業人としての成熟度、制度への関心を確認したい", keywords: ["具体的な学習対象", "習得方法", "職場への還元", "成長への意志"] },
+  { q: "これまでの仕事で、失敗した経験と、そこから学んだことを教えてください。", intent: "誠実さ、失敗の受け止め方、改善能力、成長可能性を確認したい", keywords: ["失敗の状況", "本人責任の認識", "報告体制", "改善実績"] },
+  { q: "職場で意見が対立したとき、どう調整しますか。", intent: "組織への適応と、個人の誠実さのバランス、成熟した判断力を確認したい", keywords: ["相手理解", "上司相談", "組織判断尊重", "全力実行"] },
+  { q: "配属予定の部署について、何を知っていますか。何がしたいですか。", intent: "配属部門への関心、配属後の適応速度、教育コストを確認したい", keywords: ["部門の主要業務", "現在の課題", "改善領域", "初動計画"] },
+  { q: "失敗から学んだことを、実際にどのように改善し、実行に移しましたか。", intent: "実行力、改善への継続性、自己評価能力を確認したい", keywords: ["失敗の認識", "改善策の立案", "実行行動", "実績確認"] }
+];
+
+let selectedQ = null;
+let transcript = '';
+let recognition = null;
+const WORKERS_URL = 'https://gamba-api.kogentext.workers.dev';
+const TIMEOUT_MS = 30000; // 30秒タイムアウト
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showStatus('お使いのブラウザは音声認識に対応していません。Chrome、Edge、Safariをお試しください。', 'error');
+    return false;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  
+  recognition.onstart = () => {
+    document.getElementById('voiceBtn').classList.add('recording');
+    document.getElementById('voiceBtn').textContent = '🔴 記録中...';
+  };
+  
+  recognition.onresult = (event) => {
+    transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    document.getElementById('transcriptBox').textContent = transcript;
+    document.getElementById('transcriptBox').classList.remove('empty');
+  };
+  
+  recognition.onerror = (event) => {
+    console.error('音声認識エラー:', event.error);
+    showStatus('音声認識エラー: ' + event.error, 'error');
+  };
+  
+  recognition.onend = () => {
+    document.getElementById('voiceBtn').classList.remove('recording');
+    document.getElementById('voiceBtn').textContent = '🎤 音声入力開始';
+  };
+  
+  return true;
+}
+
+function selectQuestion(idx) {
+  selectedQ = idx;
+  document.querySelectorAll('.q-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
+  const q = questions[idx];
+  document.getElementById('questionDisplay').style.display = 'block';
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('intentText').textContent = q.intent;
+  document.getElementById('keywordArea').innerHTML = q.keywords.map(k => `<span class="keyword">${k}</span>`).join('');
+  document.getElementById('intentSection').style.display = 'block';
+  document.getElementById('evalResultSection').style.display = 'none';
+  hideStatus();
+}
+
+function toggleVoiceInput() {
+  if (!recognition) {
+    if (!initVoice()) return;
+  }
+  if (recognition.onstart !== null) {
+    recognition.start();
+  } else {
+    recognition.stop();
+  }
+}
+
+function clearTranscript() {
+  transcript = '';
+  document.getElementById('transcriptBox').textContent = '音声を記録してください';
+  document.getElementById('transcriptBox').classList.add('empty');
+  document.getElementById('evalResultSection').style.display = 'none';
+  hideStatus();
+  if (recognition) recognition.stop();
+}
+
+function showStatus(message, type) {
+  const statusDiv = document.getElementById('statusMessage');
+  statusDiv.className = `msg ${type}`;
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+}
+
+function hideStatus() {
+  document.getElementById('statusMessage').style.display = 'none';
+}
+
+async function getAutoEvaluation() {
+  if (!selectedQ || !transcript.trim()) {
+    showStatus('質問を選択して、音声入力を記録してください。', 'warning');
+    return;
+  }
+  
+  const q = questions[selectedQ];
+  const evalBtn = document.getElementById('evalBtn');
+  const loadingSection = document.getElementById('loadingSection');
+  
+  // ローディング表示
+  evalBtn.disabled = true;
+  evalBtn.classList.add('loading');
+  loadingSection.style.display = 'block';
+  hideStatus();
+  
+  try {
+    console.log('API呼び出し開始:', WORKERS_URL);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    
+    const response = await fetch(WORKERS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        question: q.q,
+        transcript: transcript
+      }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    console.log('API応答ステータス:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API エラー:', response.status, errorText);
+      throw new Error(`API エラー (${response.status}): ${errorText.substring(0, 100)}`);
+    }
+    
+    const result = await response.json();
+    console.log('評価結果:', result);
+    displayEvaluation(result);
+    showStatus('✓ AI評価が完了しました', 'success');
+    
+  } catch (error) {
+    console.error('詳細エラー:', error);
+    
+    if (error.name === 'AbortError') {
+      showStatus('タイムアウト（30秒以内に応答がありません）。ネットワーク接続を確認してください。', 'error');
+    } else {
+      showStatus('AI評価エラー: ' + error.message, 'error');
+    }
+    
+  } finally {
+    evalBtn.disabled = false;
+    evalBtn.classList.remove('loading');
+    loadingSection.style.display = 'none';
+  }
+}
+
+function displayEvaluation(result) {
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const evalDetails = document.getElementById('evalDetails');
+  
+  scoreDisplay.textContent = result.score ? `${result.score}点` : '評価中...';
+  
+  let html = '';
+  if (result.good) {
+    html += '<div class="eval-item">';
+    html += '<div class="eval-label">✓ 良かった点</div>';
+    html += '<div class="eval-content">';
+    if (Array.isArray(result.good)) {
+      result.good.forEach(item => {
+        html += `<div>・${item}</div>`;
+      });
+    } else {
+      html += `<div>${result.good}</div>`;
+    }
+    html += '</div></div>';
+  }
+  
+  if (result.improve) {
+    html += '<div class="eval-item">';
+    html += '<div class="eval-label">△ 改善すべき点</div>';
+    html += '<div class="eval-content">';
+    if (Array.isArray(result.improve)) {
+      result.improve.forEach(item => {
+        html += `<div>・${item}</div>`;
+      });
+    } else {
+      html += `<div>${result.improve}</div>`;
+    }
+    html += '</div></div>';
+  }
+  
+  if (result.model) {
+    html += '<div class="eval-item">';
+    html += '<div class="eval-label">📝 模範回答例</div>';
+    html += `<div class="eval-content">${result.model}</div></div>`;
+  }
+  
+  if (result.advice) {
+    html += '<div class="eval-item">';
+    html += '<div class="eval-label">💡 改善アドバイス</div>';
+    html += `<div class="eval-content">${result.advice}</div></div>`;
+  }
+  
+  evalDetails.innerHTML = html;
+  document.getElementById('evalResultSection').style.display = 'block';
+  window.scrollTo(0, document.getElementById('evalResultSection').offsetTop);
+}
+
+// 初期化
+window.addEventListener('load', () => {
+  initVoice();
+  console.log('✓ ページ初期化完了');
+});
+</script>
+</body>
+</html>
